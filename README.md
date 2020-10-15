@@ -1,6 +1,6 @@
 # image-thumbnailer
 
-A simple service that can resize images on demand from an origin URL. Several resizing modes and possible, and it can convert images to PNG or JPEG dynamically. This service works best when deployed in some serverless environment (e.g. Google cloud Run - although can also be used as a cloud function) with a CDN in front of it to cache responses (this service does no caching of its own).
+A simple service that can resize images on demand from an origin URL. Several resizing modes are possible, and it can convert images to PNG or JPEG dynamically. This service works best when deployed in some serverless environment (e.g. Google cloud Run - although can also be used as a cloud function) with a CDN in front of it to cache responses (this service does no caching of its own).
 
 ## Parameters
 

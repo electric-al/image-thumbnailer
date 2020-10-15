@@ -1,0 +1,22 @@
+{
+  "name": "image-resize",
+  "version": "0.1.0",
+  "description": "A small app to resize images on demand.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "Al James",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "express-async-handler": "^1.1.4",
+    "express-validator": "^6.6.1",
+    "got": "^11.7.0",
+    "sharp": "^0.26.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.5"
+  }
+}

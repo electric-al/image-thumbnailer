@@ -1,6 +1,7 @@
 
 const asyncHandler = require('express-async-handler')
 const express = require('express')
+const createError = require('http-errors')
 const got = require('got')
 const sharp = require('sharp')
 const { query, validationResult } = require('express-validator');
@@ -14,7 +15,7 @@ const sharp_resize_modes = {
 }
 
 async function loadImageFromURL(source_url){
-    response = await got(source_url);
+    response = await got(source_url, {timeout: 5000, retry:0});
     const image = sharp(response.rawBody).withMetadata();
     image.rotate();
     return image;
@@ -49,7 +50,7 @@ app.get('/tmb', [
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+        throw createError(400, 'Parameters incorrect', { errors: errors.array() }) 
     }
 
     const source_url = req.query.url
@@ -66,5 +67,28 @@ app.get('/tmb', [
         .set('Cache-control', 'public, max-age=3600')
         .send(output_buffer);
 }));
+
+// Error handler to send a 1x1 transparent png back as to not break img tags.
+// The error message is included in a response HTTP header 'X-Image-Error'
+// This error image has a cache duration of 60s
+app.use(function (err, req, res, next) {
+    console.error(err)
+    const canvas = sharp({
+        create: {
+          width: 1,
+          height: 1,
+          channels: 4,
+          background: '#ffffff00'
+        }
+    });
+    canvas.png().toBuffer().then((buffer) => {
+        if (!err.statusCode) err.statusCode = 500;
+        res.status(err.statusCode)
+            .set('Content-Type', 'image/png')
+            .set('Cache-control', 'public, max-age=60')
+            .set('X-Error-Message', err.message)
+            .send(buffer)
+    })
+})
 
 exports.app = app;

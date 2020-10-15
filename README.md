@@ -32,5 +32,7 @@ The `mode` parameter governs how the image is resized if the aspect ratio of the
 ## Future todos
 
 - Ability to sign requests with a secret (supplied in the env vars) so that the parameters cannot be altered by modifying the URL
+- Better error handling and timeouts
+- Cache header control via env vars
 - Ability to supply a background colour of 'pad' mode
 - (Potentital) cache images (origin and generated) in a GCP storage / S3 bucket so speed up requests.

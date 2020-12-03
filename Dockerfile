@@ -10,8 +10,10 @@ WORKDIR /usr/src/app
 # Copying this separately prevents re-running npm install on every code change.
 COPY package*.json ./
 
-# Install production dependencies.
+# Install production dependencies, typescript and compile
 RUN npm install --only=production
+RUN     npm install tsc -g
+RUN     tsc
 
 # Copy local code to the container image.
 COPY . ./

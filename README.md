@@ -31,6 +31,42 @@ The `mode` parameter governs how the image is resized if the aspect ratio of the
 | trim | Returns an image exactly `w`x`h` pixels with the edges of the origin image trimmed to fit exactly. |
 | pad | Returns an image exactly `w`x`h` pixels with the edges of the origin image padded so that the whole origin image is visible. |
 
+## Signing requests
+
+You can optionally enable request signing. This signs each request with a HMAC using a secret known only to your application, thus preventing URLs being modified. 
+
+To enable this mode, supply a `SIGNATURE_SECRET` environment variable. The signature is worked out with the following:
+
+1. Taking query string parameters as key value map, sort into key ascending order
+2. Generate a query string from the parameters in sorted order
+3. Take the SHA256 HMAC of the query string and secret.
+
+The code for calculating a valid signature can be found in the `calculateSignature` function. A similar python implementation would be:
+
+```
+import collections
+import urllib.parse
+import hmac
+import hashlib
+
+params = {
+	"url":"https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Mulga_Parrot_male_1_-_Patchewollock.jpg/1280px-Mulga_Parrot_male_1_-_Patchewollock.jpg",
+	"w":"500",
+	"mode":"bestfit",
+	"h":"200"
+}
+secret = "www"
+od = collections.OrderedDict(sorted(params.items()))
+qs = urllib.parse.urlencode(od)
+h = hmac.new( secret.encode('UTF-8'), qs.encode('UTF-8'), hashlib.sha256 )
+print( h.hexdigest() )
+//prints: 99c5e9962e662357a564c3973d6f0a42630808869c4c790ddffafaa8b339ec10
+```
+
+An example of a valid signed request (with secret as `SIGNATURE_SECRET=www`) `tmb?url=https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Mulga_Parrot_male_1_-_Patchewollock.jpg/1280px-Mulga_Parrot_male_1_-_Patchewollock.jpg&w=500&mode=bestfit&h=200&signature=99c5e9962e662357a564c3973d6f0a42630808869c4c790ddffafaa8b339ec10`;
+
+If the environment variable is not supplied to the process, no checking occurrs. 
+
 ## Caching
 
 This service is designed to be deployed behind a CDN. Currently all successful requests have a cache TTL of 1 hour. Errors have a cache TTL of 60s (see below).
@@ -67,7 +103,6 @@ gcloud functions deploy <name> --runtime nodejs10 --trigger-http --allow-unauthe
 
 ## Future todos
 
-- Ability to sign requests with a secret (supplied in the env vars) so that the parameters cannot be altered by modifying the URL
 - Better error handling and configurable timeouts
 - Cache header control via env vars
 - Ability to supply a background colour of 'pad' mode

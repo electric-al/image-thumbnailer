@@ -59,7 +59,10 @@ To run as a cloud function:
 
 ```
 (clone the repo)
-gcloud functions deploy <name> sizer --runtime nodejs10 --trigger-http --allow-unauthenticated --entry-point app
+tsc
+cd dist
+cp ../package.json ./
+gcloud functions deploy <name> --runtime nodejs10 --trigger-http --allow-unauthenticated --entry-point app
 ```
 
 ## Future todos

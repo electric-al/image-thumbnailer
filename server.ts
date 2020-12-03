@@ -1,7 +1,7 @@
 
-app = require('./index').app
+const sapp = require('./index').app
 
 const port = process.env.PORT || 8080;
-app.listen(port, () => {
+sapp.listen(port, () => {
   console.log('App listening on port', port);
 });

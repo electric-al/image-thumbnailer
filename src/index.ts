@@ -3,7 +3,9 @@ import asyncHandler from "express-async-handler"
 import express from "express"
 import createError from "http-errors"
 import got from "got"
-import sharp from 'sharp';
+import crypto from "crypto"
+import sharp from 'sharp'
+import querystring from 'querystring'
 import { query, validationResult } from 'express-validator';
 
 const app = express()
@@ -51,6 +53,16 @@ async function renderBuffer(image: sharp.Sharp, format: ImageFormat): Promise<[B
     }
 }
 
+function calculateSignature(params: any, secret: string): string{
+    const hmac =  crypto.createHmac('sha256', secret)
+    const ordered: { [key: string]: string} = {};
+    Object.keys(params).sort().forEach(function(key: any) {
+        if (key!='signature') ordered[key] = params[key];
+    });
+    hmac.update(querystring.encode(ordered))
+    return hmac.digest('hex')
+}
+
 app.get('/tmb', [
     query('url').isURL(),
     query('w').isInt().toInt(),
@@ -69,6 +81,19 @@ app.get('/tmb', [
     const h: number = parseInt(req.query.h.toString())
     const resize_mode_str: string = (req.query.mode || 'bestfit').toString()
     const format_str: string = (req.query.format || 'jpeg').toString()
+    const signature: string = (req.query.signature || '').toString()
+
+    // Check the signature
+    if (process.env.SIGNATURE_SECRET) {
+        if (!signature) {
+            throw createError(403, 'Signature required') 
+        }
+        const expected_signature: string = calculateSignature(req.query, process.env.SIGNATURE_SECRET)
+        if (signature != expected_signature){
+            console.log(`Expected signature: ${expected_signature}`)
+            throw createError(403, 'Signature mismatch') 
+        }
+    }
 
     const resize_mode: ResizeMode = resize_mode_str as ResizeMode
     const format: ImageFormat = format_str as ImageFormat
